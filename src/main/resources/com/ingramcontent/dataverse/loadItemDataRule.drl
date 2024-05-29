@@ -1,0 +1,54 @@
+package com.ingramcontent.dataverse;
+
+import com.ingramcontent.dataverse.utility.Constant;
+import com.ingramcontent.dataverse.helper.LoadItemDataHelper;
+
+import com.ingramcontent.dataverse.model.Signal;
+import com.ingramcontent.dataverse.model.Xformer;
+import com.ingramcontent.dataverse.model.PipelineThreshold;
+import com.ingramcontent.dataverse.model.Producer;
+import com.ingramcontent.dataverse.model.DataFilter;
+
+rule "Item Load Pipeline"
+    ruleflow-group 'pipelineCodeRule'
+	when 
+	    threshold: PipelineThreshold();
+		signal: Signal(Constant.ITEM_LOAD.equalsIgnoreCase(pipelineCode) 
+		        && totalRecord > threshold.getItemLoad());
+		xformer: Xformer();
+	then
+		xformer.setIsInitialLoad(Constant.TRUE_VAL);
+	end
+	
+rule "Publisher Load Pipeline"
+    ruleflow-group 'pipelineCodeRule'
+	when 
+	    threshold: PipelineThreshold();
+		signal: Signal(Constant.PUBLISHER_LOAD.equalsIgnoreCase(pipelineCode) 
+		        && totalRecord > threshold.getPublisherLoad());
+		xformer: Xformer();
+	then
+		xformer.setIsInitialLoad(Constant.TRUE_VAL);
+	end	
+
+rule "Product All TIMS Polar Pipeline"
+    ruleflow-group 'pipelineCodeRule'
+	when 
+	    threshold: PipelineThreshold();
+		signal: Signal(Constant.PRODUCT_ALL_TIMS_POLAR.equalsIgnoreCase(pipelineCode) 
+		        && totalRecord > threshold.getProductAllTimsPolar());
+		xformer: Xformer();
+	then
+		xformer.setIsInitialLoad(Constant.TRUE_VAL);
+	end	
+
+rule "Data Filter"
+    ruleflow-group 'dataFilterRule'
+	when 
+	    dataFilter: DataFilter();
+	    producerRequest: Producer();
+	then
+		LoadItemDataHelper.filterData(dataFilter,  producerRequest);
+	end		
+	
+	
